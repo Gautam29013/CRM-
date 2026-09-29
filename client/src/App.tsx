@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Activity, ArrowUpRight, BarChart3, Bell, Building2, CalendarDays, Check,
+  Activity, ArrowRight, ArrowUpRight, BarChart3, Bell, Building2, CalendarDays, Check,
   ChevronDown, CircleDollarSign, Clock3, Command, FileText, Filter, LayoutDashboard,
-  MoonStar, MoreHorizontal, Plus, Search, Settings, Sparkles, SunMedium, Target, Users, Zap,
+  Eye, EyeOff, LockKeyhole, Mail, MoonStar, MoreHorizontal, Plus, Search, Settings,
+  ShieldCheck, Sparkles, SunMedium, Target, Users, Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -35,7 +36,62 @@ const stages = ['Discovery', 'Proposal', 'Negotiation', 'Contract sent']
 const stageValues: Record<string, number[]> = { Discovery: [2, 4], Proposal: [0, 1], Negotiation: [1, 2], 'Contract sent': [3] }
 
 export default function App() {
-  return <Routes><Route path="*" element={<Workspace />} /></Routes>
+  return <Routes>
+    <Route path="/login" element={<AuthPage mode="login" />} />
+    <Route path="/signup" element={<AuthPage mode="signup" />} />
+    <Route path="/admin/login" element={<AuthPage mode="admin" />} />
+    <Route path="*" element={<Workspace />} />
+  </Routes>
+}
+
+function AuthPage({ mode }: { mode: 'login' | 'signup' | 'admin' }) {
+  const [showPassword, setShowPassword] = useState(false)
+  const isSignup = mode === 'signup'
+  const isAdmin = mode === 'admin'
+  const navigate = useNavigate()
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    navigate('/')
+  }
+
+  return <main className="auth-page">
+    <section className="auth-panel">
+      <NavLink to="/" className="auth-brand" aria-label="NexusCRM home">
+        <span className="brand-mark"><Zap size={17} fill="currentColor" /></span>
+        <span>Nexus<span className="brand-accent">CRM</span></span>
+      </NavLink>
+      <div className="auth-form-wrap">
+        <div className="auth-heading">
+          <span className="auth-kicker">{isAdmin ? 'ADMINISTRATOR ACCESS' : isSignup ? 'YOUR SALES WORKSPACE' : 'WELCOME BACK'}</span>
+          <h1>{isAdmin ? 'Workspace control starts here.' : isSignup ? 'Build better, together.' : 'Good to see you again.'}</h1>
+          <p>{isAdmin ? 'Sign in with your administrator account to manage NexusCRM.' : isSignup ? 'Create your workspace and bring every opportunity into focus.' : 'Sign in to pick up right where your team left off.'}</p>
+        </div>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {isSignup && <label className="auth-field"><span>Full name</span><input name="name" autoComplete="name" placeholder="Jordan Davis" required /></label>}
+          {isSignup && <label className="auth-field"><span>Company</span><input name="company" autoComplete="organization" placeholder="Acme Inc." required /></label>}
+          <label className="auth-field"><span>Work email</span><span className="auth-input-wrap"><Mail size={17} /><input name="email" type="email" autoComplete="email" placeholder="you@company.com" required /></span></label>
+          <label className="auth-field"><span>Password</span><span className="auth-input-wrap"><LockKeyhole size={17} /><input name="password" type={showPassword ? 'text' : 'password'} autoComplete={isSignup ? 'new-password' : 'current-password'} placeholder={isSignup ? 'At least 8 characters' : 'Enter your password'} minLength={isSignup ? 8 : undefined} required /><button className="password-toggle" type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></span></label>
+          {isSignup ? <label className="auth-check"><input type="checkbox" required /><span>I agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a>.</span></label> : <div className="auth-options"><label className="auth-check"><input type="checkbox" name="remember" /><span>Remember me</span></label><a href="#reset">Forgot password?</a></div>}
+          <button className="auth-submit" type="submit">{isSignup ? 'Create account' : 'Sign in'}<ArrowRight size={17} /></button>
+        </form>
+        <p className="auth-switch">{isAdmin ? <>Not an administrator? <NavLink to="/login">Team sign in</NavLink></> : <>{isSignup ? 'Already have an account?' : 'New to NexusCRM?'} <NavLink to={isSignup ? '/login' : '/signup'}>{isSignup ? 'Sign in' : 'Create an account'}</NavLink></>}</p>
+        <div className="auth-security"><ShieldCheck size={15} /><span>{isAdmin ? 'Administrative access is monitored' : 'Your workspace, protected by design'}</span></div>
+      </div>
+      <span className="auth-copyright">© 2026 NexusCRM, Inc.</span>
+    </section>
+    <aside className="auth-aside">
+      <div className="auth-aside-copy"><span>CLARITY FOR EVERY CONVERSATION</span><h2>Good relationships<br />move business forward.</h2><p>Bring your pipeline, people, and next steps into one thoughtful workspace.</p></div>
+      <div className="auth-preview" aria-label="NexusCRM workspace preview">
+        <div className="preview-top"><div className="preview-dots"><i /><i /><i /></div><span>Pipeline overview</span><span className="preview-menu">···</span></div>
+        <div className="preview-metric"><div><span>Weighted pipeline</span><strong>$1,264,000</strong></div><span className="preview-growth">↗ 18.2%</span></div>
+        <div className="preview-chart" aria-hidden="true">{[36, 51, 44, 67, 55, 80, 70, 96, 74, 100, 83, 94].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div>
+        <div className="preview-legend"><span><i /> New business</span><span>Last 30 days</span></div>
+        <div className="preview-activity"><div className="preview-avatar">AM</div><div><strong>Ava Mitchell</strong><span>moved Acme Corp to Negotiation</span></div><small>12m</small></div>
+      </div>
+      <div className="auth-aside-foot"><span>BUILT FOR TEAMS THAT MOVE</span><span>01 — 03</span></div>
+    </aside>
+  </main>
 }
 
 function Workspace() {
